@@ -352,6 +352,21 @@ export default class GooglePlacesAutocomplete extends Component {
     return rowData;
   }
 
+  _getAutocompleteComponentsFilter = () => {
+    const q = this.props.GooglePlacesAutoCompleteComponentsFilter;
+    if (q && ('countries' in q)) {
+      const components = q.countries;
+      if (components.length > 0) {
+        const query = components.map((component) => {
+          return `country:${component}`;
+        });
+        return query.join('|');
+      }
+      return '';
+    }
+    return '';
+  }
+
   _filterResultsByTypes = (unfilteredResults, types) => {
     if (types.length === 0) return unfilteredResults;
 
@@ -476,7 +491,10 @@ export default class GooglePlacesAutocomplete extends Component {
           // console.warn("google places autocomplete: request could not be completed or has been aborted");
         }
       };
-      request.open('GET', 'https://maps.googleapis.com/maps/api/place/autocomplete/json?&input=' + encodeURIComponent(text) + '&' + Qs.stringify(this.props.query));
+      request.open('GET', 'https://maps.googleapis.com/maps/api/place/autocomplete/json?&input=' + encodeURIComponent(text) + '&' + Qs.stringify({
+        ...this.props.query,
+        components: this._getAutocompleteComponentsFilter()
+      }));
       if (this.props.query.origin !== null) {
          request.setRequestHeader('Referer', this.props.query.origin)
       }
@@ -723,6 +741,7 @@ GooglePlacesAutocomplete.propTypes = {
   timeout: PropTypes.number,
   onTimeout: PropTypes.func,
   query: PropTypes.object,
+  GooglePlacesAutoCompleteComponentsFilter: PropTypes.object,
   GoogleReverseGeocodingQuery: PropTypes.object,
   GooglePlacesSearchQuery: PropTypes.object,
   styles: PropTypes.object,
@@ -769,6 +788,7 @@ GooglePlacesAutocomplete.defaultProps = {
     language: 'en',
     types: 'geocode',
   },
+  GooglePlacesAutoCompleteComponentsFilter: {},
   GoogleReverseGeocodingQuery: {},
   GooglePlacesSearchQuery: {
     rankby: 'distance',
